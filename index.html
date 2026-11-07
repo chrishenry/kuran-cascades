@@ -298,7 +298,7 @@
 import {
   HANDLE_XS, PRESETS, CROWD_SIZES,
   makeCurve, shiftCurve, makeCrowd, makeShare, run, crossings, landscape,
-} from "./model.js";
+} from "./model.js?v=2"; // bump when model.js changes, so caches never mix versions
 
 const NS = "http://www.w3.org/2000/svg";
 const $ = (id) => document.getElementById(id);
