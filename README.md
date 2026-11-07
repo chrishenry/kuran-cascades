@@ -2,6 +2,8 @@
 
 An interactive version of Figure 4.3 from Timur Kuran's *Private Truths, Public Lies* (Harvard University Press, 1995). It shows how hidden opinions settle, and how a small spark can tip a whole crowd.
 
+Live at https://chrishenry.github.io/kuran-cascades/
+
 Built for Uri at [Atoms vs Bits](https://www.atvbt.com/widget-help-request/).
 
 ## The idea in one paragraph
@@ -21,7 +23,7 @@ People often hide what they think until enough others speak up first. Each perso
 Add `?embed` to the URL to hide the title and explainer. In a Ghost post, use an HTML card:
 
 ```html
-<iframe src="https://YOUR-USERNAME.github.io/kuran-cascades/?embed" width="100%" height="1100" style="border:0" loading="lazy" title="When does a crowd tip?"></iframe>
+<iframe src="https://chrishenry.github.io/kuran-cascades/?embed" width="100%" height="1100" style="border:0" loading="lazy" title="When does a crowd tip?"></iframe>
 ```
 
 ## Files
