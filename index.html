@@ -1,0 +1,822 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>When Does a Crowd Tip?</title>
+<meta name="description" content="An interactive version of Figure 4.3 from Timur Kuran's Private Truths, Public Lies: how hidden opinions settle, and how a small spark can tip a whole crowd.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M3 14q13 16 26 0' fill='none' stroke='%23c4472d' stroke-width='3'/%3E%3Ccircle cx='16' cy='14' r='5' fill='%23fff' stroke='%231f1d1a' stroke-width='2.5'/%3E%3C/svg%3E">
+<meta property="og:title" content="When does a crowd tip?">
+<meta property="og:description" content="An interactive version of Timur Kuran's preference falsification figure.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f7f4ec;
+    --card: #fffdf8;
+    --ink: #1f1d1a;
+    --ink-2: #5e5850;
+    --muted: #a39b8e;
+    --rule: #e2dbcc;
+    --grid: #ece6da;
+    --accent: #c4472d;
+    --accent-soft: #f4ddd3;
+    --ground: #e8e0cf;
+    --ground-ink: #b2a88f;
+    --dot-off: #ddd5c6;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #171614;
+      --card: #201f1c;
+      --ink: #ece7dc;
+      --ink-2: #b4ac9d;
+      --muted: #6f685d;
+      --rule: #35322c;
+      --grid: #2a2824;
+      --accent: #ef7d5f;
+      --accent-soft: #4a2b22;
+      --ground: #2c2a25;
+      --ground-ink: #5d574c;
+      --dot-off: #3b3832;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #171614;
+    --card: #201f1c;
+    --ink: #ece7dc;
+    --ink-2: #b4ac9d;
+    --muted: #6f685d;
+    --rule: #35322c;
+    --grid: #2a2824;
+    --accent: #ef7d5f;
+    --accent-soft: #4a2b22;
+    --ground: #2c2a25;
+    --ground-ink: #5d574c;
+    --dot-off: #3b3832;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: 15px/1.55 Inter, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 16px 56px; }
+  .serif { font-family: "Source Serif 4", Georgia, serif; }
+
+  .intro { max-width: 680px; margin-bottom: 28px; }
+  .kicker {
+    margin: 0 0 8px;
+    font-size: 12px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  h1 {
+    margin: 0 0 12px;
+    font: 600 clamp(30px, 4.4vw, 44px)/1.1 "Source Serif 4", Georgia, serif;
+    letter-spacing: -.01em;
+  }
+  .lede { margin: 0; font: 400 18px/1.55 "Source Serif 4", Georgia, serif; color: var(--ink-2); }
+
+  .stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
+    gap: 28px;
+    align-items: start;
+  }
+  @media (max-width: 860px) { .stage { grid-template-columns: minmax(0, 1fr); } }
+
+  .figure, .panel {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+  }
+  .figure { padding: 16px 16px 12px; }
+  .figure svg { display: block; width: 100%; height: auto; overflow: visible; }
+  #chart { cursor: crosshair; }
+  #bowl { cursor: pointer; margin-top: 2px; }
+  .panel-label {
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    font-weight: 600;
+  }
+  .fig-head { display: flex; justify-content: space-between; align-items: baseline; padding: 0 4px 6px; }
+  .hint { margin: 10px 4px 2px; font-size: 13px; color: var(--ink-2); }
+
+  /* chart marks */
+  .tick { font-size: 12px; fill: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .axis-label { font-size: 13px; fill: var(--ink-2); }
+  .gridline { stroke: var(--grid); stroke-width: 1; }
+  .axis { stroke: var(--ink); stroke-width: 1.2; }
+  .diag { stroke: var(--ink-2); stroke-width: 1.2; }
+  .diag-label { font-size: 12px; fill: var(--ink-2); font-style: italic; }
+  .curve { fill: none; stroke: var(--ink); stroke-width: 2.6; stroke-linejoin: round; }
+  .curve-label { font: italic 600 14px "Source Serif 4", Georgia, serif; fill: var(--ink); }
+  .base-curve { fill: none; stroke: var(--muted); stroke-width: 1.6; stroke-dasharray: 5 5; }
+  .cobweb { fill: none; stroke: var(--accent); stroke-width: 1.8; stroke-dasharray: 2 4; stroke-linecap: round; }
+  .rest { fill: var(--ink); stroke: var(--card); stroke-width: 2; }
+  .tip { fill: var(--card); stroke: var(--ink); stroke-width: 2; }
+  .handle .hit { fill: transparent; cursor: ns-resize; touch-action: none; }
+  .handle .dot { fill: var(--card); stroke: var(--ink); stroke-width: 1.6; transition: r .12s; pointer-events: none; }
+  .handle:hover .dot, .handle:focus .dot, .handle.active .dot { r: 7.5; fill: var(--accent-soft); stroke: var(--accent); }
+  .handle:focus { outline: none; }
+  .expect-mark { fill: var(--accent); }
+  .guide { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; pointer-events: none; }
+  .guide-label { font-size: 12px; fill: var(--ink-2); pointer-events: none; }
+
+  /* bowl */
+  .ground { fill: url(#hatch); }
+  .ground-edge { fill: none; stroke: var(--ink); stroke-width: 1.6; }
+  .ball { fill: var(--card); stroke: var(--ink); stroke-width: 2.2; }
+  .ball-drop { stroke: var(--accent); stroke-width: 1.2; stroke-dasharray: 2 3; }
+
+  /* panel */
+  .panel { padding: 20px; display: grid; gap: 22px; }
+  .readout .big {
+    font: 600 56px/1 "Source Serif 4", Georgia, serif;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.02em;
+    margin: 6px 0 8px;
+  }
+  .readout p { margin: 0; color: var(--ink-2); min-height: 3.1em; }
+
+  fieldset { border: 0; padding: 0; margin: 0; }
+  legend { padding: 0; margin-bottom: 8px; }
+  .seg { display: flex; flex-wrap: wrap; gap: 6px; }
+  .seg button, .btn {
+    font: 500 13px/1 Inter, system-ui, sans-serif;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 9px 13px;
+    cursor: pointer;
+  }
+  .seg button:hover, .btn:hover { border-color: var(--ink-2); }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--card); border-color: var(--ink); }
+  .seg button:focus-visible, .btn:focus-visible, input[type=range]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .spark-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 8px; }
+  .spark-row output { font-size: 13px; color: var(--ink-2); text-align: right; }
+  input[type=range] { width: 100%; accent-color: var(--accent); margin: 0; }
+  .spark-help { margin: 6px 0 0; font-size: 12.5px; color: var(--ink-2); }
+
+  #crowd { display: block; width: 100%; height: auto; margin-top: 4px; }
+  .person { fill: var(--dot-off); transition: fill .15s; }
+  .person.on { fill: var(--accent); }
+  .crowd-note { margin: 8px 0 0; font-size: 12.5px; color: var(--ink-2); }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .explain {
+    margin-top: 40px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px 32px;
+    max-width: 980px;
+  }
+  .explain h2 { grid-column: 1 / -1; margin: 0; font: 600 24px/1.2 "Source Serif 4", Georgia, serif; }
+  .explain h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
+  .explain p { margin: 0; color: var(--ink-2); }
+  footer {
+    margin-top: 44px;
+    padding-top: 18px;
+    border-top: 1px solid var(--rule);
+    font-size: 13px;
+    color: var(--ink-2);
+  }
+  footer a, .explain a { color: inherit; text-underline-offset: 2px; }
+
+  /* Embedded in a blog post: just the widget. */
+  body.embed { background: transparent; }
+  body.embed .wrap { padding: 8px; }
+  body.embed .intro, body.embed .explain, body.embed footer { display: none; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="intro">
+    <p class="kicker">Preference falsification, interactive</p>
+    <h1>When does a crowd tip?</h1>
+    <p class="lede">People often hide what they think until enough others speak up first. Timur Kuran showed that public opinion then settles where what people expect matches what they actually do, and that a tiny change in the crowd can send it somewhere else entirely.</p>
+  </header>
+
+  <section class="stage">
+    <div class="figure">
+      <div class="fig-head">
+        <span class="panel-label">A. Expectation vs. reality</span>
+      </div>
+      <svg id="chart" viewBox="0 0 520 500" role="img" aria-label="Propagation curve chart: expected public opinion across, share who actually speak up going up."></svg>
+      <div class="fig-head" style="padding-top:8px">
+        <span class="panel-label">B. Where opinion rolls</span>
+      </div>
+      <svg id="bowl" viewBox="0 0 520 120" role="img" aria-label="A ball rolling in a landscape. It settles in the low points."></svg>
+      <p class="hint">Click the chart or the ground to drop the ball. Drag the white dots to reshape the crowd.</p>
+    </div>
+
+    <aside class="panel">
+      <div class="readout" aria-live="polite">
+        <span class="panel-label">Public opinion settles at</span>
+        <div class="big" id="big">40%</div>
+        <p id="caption">&nbsp;</p>
+      </div>
+
+      <fieldset>
+        <legend class="panel-label">Try a crowd</legend>
+        <div class="seg" id="presets"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend class="panel-label">Crowd size</legend>
+        <div class="seg" id="sizes"></div>
+      </fieldset>
+
+      <div>
+        <div class="spark-row">
+          <label for="spark" class="panel-label">Spark</label>
+          <output id="spark-out" for="spark">None</output>
+        </div>
+        <input id="spark" type="range" min="-10" max="15" step="1" value="0">
+        <p class="spark-help">Lowers every person's threshold by the same amount, like news that makes speaking up feel a bit safer.</p>
+      </div>
+
+      <div>
+        <span class="panel-label" id="crowd-label">The crowd</span>
+        <svg id="crowd" aria-labelledby="crowd-label"></svg>
+        <p class="crowd-note" id="crowd-note"></p>
+      </div>
+
+      <div class="actions">
+        <button class="btn" id="replay" type="button">Replay</button>
+        <button class="btn" id="copy" type="button">Copy link</button>
+      </div>
+    </aside>
+  </section>
+
+  <section class="explain">
+    <h2 class="serif">How to read it</h2>
+    <div>
+      <h3>The curve</h3>
+      <p>Across the bottom is what everyone <em>expects</em> the share of people speaking up to be. The curve shows how many would actually speak up at that expectation, because each person only joins once enough others seem to.</p>
+    </div>
+    <div>
+      <h3>The diagonal</h3>
+      <p>Every point where expectation and reality agree. Off the diagonal, people see a different number than they expected and adjust. The dotted staircase traces those rounds of adjusting.</p>
+    </div>
+    <div>
+      <h3>Resting points and tipping points</h3>
+      <p>Opinion settles where the curve crosses the diagonal from above (solid dot). Where it crosses from below (hollow dot), it tips: start a little to either side and opinion runs away.</p>
+    </div>
+    <div>
+      <h3>The bowl</h3>
+      <p>Kuran's panel B draws the same thing as ground for a ball to roll on. Valleys are resting points. Erase a valley and the ball rolls all the way to the next one.</p>
+    </div>
+    <div>
+      <h3>Why small things matter</h3>
+      <p>Try "Two valleys", then nudge the spark up a few points. Nobody's private views change much, yet opinion leaps from about 13% to about 90%. Since people hide their views, nobody can see in advance how close the crowd is to the edge.</p>
+    </div>
+    <div>
+      <h3>Crowd size</h3>
+      <p>Each person has one threshold, so a crowd of 10 moves in 10 point steps and is harder to tip. Larger crowds trace the smooth curve from the book.</p>
+    </div>
+  </section>
+
+  <footer>
+    Built by Chris Henry for <a href="https://www.atvbt.com/widget-help-request/">Atoms vs Bits</a>.
+    Model and Figure 4.3 from Timur Kuran, <em>Private Truths, Public Lies</em> (Harvard University Press, 1995), building on Mark Granovetter's threshold model (1978).
+    <a href="__REPO_URL__">Source on GitHub</a>, MIT license.
+  </footer>
+</main>
+
+<script type="module">
+import {
+  HANDLE_XS, PRESETS, CROWD_SIZES,
+  makeCurve, shiftCurve, makeCrowd, makeShare, run, crossings, landscape,
+} from "./model.js";
+
+const NS = "http://www.w3.org/2000/svg";
+const $ = (id) => document.getElementById(id);
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const pct = (v) => `${Math.round(v)}%`;
+
+if (new URLSearchParams(location.search).has("embed")) document.body.classList.add("embed");
+
+// ---------- state ----------
+const state = {
+  preset: "fig43",
+  ys: [...PRESETS.fig43.ys],
+  n: 100,
+  spark: 0,
+  start: 20,
+  E: 20, // current expected public opinion (where the ball is)
+};
+let model = null;
+
+function rebuild() {
+  const f = makeCurve(state.ys);
+  const fs = shiftCurve(f, state.spark);
+  const crowd = makeCrowd(f, state.n, state.spark);
+  model = { f, fs, crowd, share: makeShare(crowd), cross: crossings(fs), land: landscape(fs) };
+}
+
+// ---------- svg helpers ----------
+function el(tag, attrs = {}, parent) {
+  const node = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+  if (parent) parent.appendChild(node);
+  return node;
+}
+function toSvg(svg, evt) {
+  const pt = svg.createSVGPoint();
+  pt.x = evt.clientX;
+  pt.y = evt.clientY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+
+// ---------- chart geometry ----------
+const L = 58, T = 14, P = 440;
+const sx = (x) => L + (x / 100) * P;
+const sy = (y) => T + P - (y / 100) * P;
+const fromSx = (px) => clamp(((px - L) / P) * 100, 0, 100);
+
+const chart = $("chart");
+const bowl = $("bowl");
+
+// static chart layer
+(function drawStatic() {
+  const g = el("g", {}, chart);
+  for (let v = 0; v <= 100; v += 10) {
+    if (v > 0) {
+      el("line", { class: "gridline", x1: sx(v), x2: sx(v), y1: sy(0), y2: sy(100) }, g);
+      el("line", { class: "gridline", x1: sx(0), x2: sx(100), y1: sy(v), y2: sy(v) }, g);
+    }
+    el("text", { class: "tick", x: sx(v), y: sy(0) + 18, "text-anchor": "middle" }, g).textContent = v;
+    el("text", { class: "tick", x: sx(0) - 9, y: sy(v) + 4, "text-anchor": "end" }, g).textContent = v;
+  }
+  el("line", { class: "axis", x1: sx(0), x2: sx(100), y1: sy(0), y2: sy(0) }, g);
+  el("line", { class: "axis", x1: sx(0), x2: sx(0), y1: sy(0), y2: sy(100) }, g);
+  el("text", { class: "axis-label", x: sx(50), y: sy(0) + 40, "text-anchor": "middle" }, g)
+    .textContent = "Expected public opinion (% speaking up)";
+  const yl = el("text", { class: "axis-label", "text-anchor": "middle",
+    transform: `translate(${sx(0) - 42} ${sy(50)}) rotate(-90)` }, g);
+  yl.textContent = "Share who would actually speak up (%)";
+  el("line", { class: "diag", x1: sx(0), y1: sy(0), x2: sx(100), y2: sy(100) }, g);
+  // Sits just below the diagonal, where curves that matter rarely run.
+  el("text", { class: "diag-label", x: sx(78) + 9, y: sy(78) + 9, "text-anchor": "end",
+    transform: `rotate(-45 ${sx(78) + 9} ${sy(78) + 9})` }, g).textContent = "expectation = reality";
+})();
+
+const hit = el("rect", { x: L, y: T, width: P, height: P, fill: "transparent" }, chart);
+const basePath = el("path", { class: "base-curve" }, chart);
+const curvePath = el("path", { class: "curve" }, chart);
+const curveLabel = el("text", { class: "curve-label", "text-anchor": "end" }, chart);
+curveLabel.textContent = "Propagation curve";
+const cobweb = el("path", { class: "cobweb" }, chart);
+const expectMark = el("path", { class: "expect-mark" }, chart);
+const guide = el("line", { class: "guide", y1: sy(0), y2: sy(100), visibility: "hidden" }, chart);
+const guideLabel = el("text", { class: "guide-label", y: T + 14, visibility: "hidden" }, chart);
+const handles = el("g", {}, chart);
+// Resting and tipping points draw over the handles but let drags pass through.
+const markers = el("g", { "pointer-events": "none" }, chart);
+
+// bowl
+const BL = 104, BT = 24;
+const defs = el("defs", {}, bowl);
+const hatch = el("pattern", { id: "hatch", width: 14, height: 14, patternUnits: "userSpaceOnUse",
+  patternTransform: "rotate(35)" }, defs);
+el("rect", { width: 14, height: 14, fill: "var(--ground)" }, hatch);
+el("line", { x1: 3, y1: 2, x2: 3, y2: 7, stroke: "var(--ground-ink)", "stroke-width": 1.2 }, hatch);
+el("line", { x1: 10, y1: 8, x2: 10, y2: 11, stroke: "var(--ground-ink)", "stroke-width": 1.2 }, hatch);
+const groundPath = el("path", { class: "ground" }, bowl);
+const edgePath = el("path", { class: "ground-edge" }, bowl);
+const ball = el("circle", { class: "ball", r: 9 }, bowl);
+
+let vScale = null;
+function groundY(x) {
+  const { xs, vs } = model.land;
+  const i = clamp(Math.floor(x / 0.5), 0, xs.length - 2);
+  const t = (x - xs[i]) / 0.5;
+  const v = vs[i] + (vs[i + 1] - vs[i]) * t;
+  return BL - ((v - vScale.min) / vScale.range) * (BL - BT);
+}
+
+// ---------- drawing ----------
+function smoothD(f) {
+  let d = "";
+  for (let x = 0; x <= 100; x += 1) d += `${x ? "L" : "M"}${sx(x).toFixed(1)},${sy(f(x)).toFixed(1)}`;
+  return d;
+}
+function stepD() {
+  const { crowd, share } = model;
+  let d = `M${sx(0)},${sy(share(0)).toFixed(1)}`;
+  let last = 0;
+  for (const t of crowd) {
+    if (!(t > last) || t > 100) continue;
+    d += `H${sx(t).toFixed(1)}V${sy(share(t)).toFixed(1)}`;
+    last = t;
+  }
+  return d + `H${sx(100)}`;
+}
+
+function drawCurve() {
+  // The crowd's real curve: one step per person, smooth-looking at 1,000.
+  curvePath.setAttribute("d", stepD());
+  basePath.setAttribute("d", state.spark ? smoothD(model.f) : "");
+  // Label the curve near its right end, above or below the line.
+  const ly = model.fs(96);
+  curveLabel.setAttribute("x", sx(98));
+  curveLabel.setAttribute("y", ly > 92 ? sy(ly) + 22 : sy(ly) - 10);
+
+  markers.replaceChildren();
+  // In a 10-person crowd the steps, not the smooth curve, decide where
+  // opinion rests, so the smooth-curve markers would mislead.
+  for (const c of state.n >= 100 ? model.cross : []) {
+    el("circle", { class: c.kind, cx: sx(c.x), cy: sy(c.x), r: 6.5 }, markers)
+      .appendChild(document.createElementNS(NS, "title")).textContent =
+      c.kind === "rest" ? `Resting point at ${pct(c.x)}` : `Tipping point at ${pct(c.x)}`;
+  }
+
+  handles.replaceChildren();
+  HANDLE_XS.forEach((x, k) => {
+    const g = el("g", { class: "handle", tabindex: 0, role: "slider",
+      "aria-label": `Share with a threshold at or below ${x}%`,
+      "aria-valuemin": 0, "aria-valuemax": 100, "aria-valuenow": state.ys[k] }, handles);
+    g.dataset.k = k;
+    el("circle", { class: "hit", cx: sx(x), cy: sy(state.ys[k]), r: 16 }, g);
+    el("circle", { class: "dot", cx: sx(x), cy: sy(state.ys[k]), r: 5.5 }, g);
+    if (dragging === k) g.classList.add("active");
+  });
+
+  // bowl landscape
+  const { xs, vs } = model.land;
+  let min = Infinity, max = -Infinity;
+  for (const v of vs) { min = Math.min(min, v); max = Math.max(max, v); }
+  vScale = { min, range: Math.max(max - min, 1) };
+  let d = "";
+  for (let i = 0; i < xs.length; i += 2) d += `${i ? "L" : "M"}${sx(xs[i]).toFixed(1)},${groundY(xs[i]).toFixed(1)}`;
+  edgePath.setAttribute("d", d);
+  groundPath.setAttribute("d", `${d}L${sx(100)},118L${sx(0)},118Z`);
+}
+
+function drawBall() {
+  const x = state.E;
+  ball.setAttribute("cx", sx(x));
+  ball.setAttribute("cy", groundY(x) - 9);
+  expectMark.setAttribute("d", `M${sx(x)},${sy(0) - 1}l-6,-9h12z`);
+  drawCrowdState();
+}
+
+// ---------- crowd dots ----------
+const crowdSvg = $("crowd");
+let people = [];
+function buildCrowd() {
+  const n = state.n;
+  const cols = n === 10 ? 10 : n === 100 ? 20 : 50;
+  const rows = Math.ceil(n / cols);
+  const cell = 300 / cols;
+  crowdSvg.setAttribute("viewBox", `0 0 300 ${rows * cell}`);
+  crowdSvg.replaceChildren();
+  people = [];
+  for (let i = 0; i < n; i++) {
+    const c = el("circle", {
+      class: "person",
+      cx: (i % cols) * cell + cell / 2,
+      cy: Math.floor(i / cols) * cell + cell / 2,
+      r: cell * (n === 10 ? 0.3 : 0.36),
+    }, crowdSvg);
+    if (n <= 100) c.appendChild(document.createElementNS(NS, "title"));
+    people.push(c);
+  }
+}
+function labelCrowd() {
+  if (state.n > 100) return;
+  model.crowd.forEach((t, i) => {
+    people[i].firstChild.textContent = t === Infinity
+      ? "Never speaks up"
+      : `Speaks up once ${Math.round(t)}% are expected to`;
+  });
+}
+let lastOn = -1;
+function drawCrowdState() {
+  const on = Math.round((model.share(state.E) / 100) * state.n);
+  if (on !== lastOn) {
+    people.forEach((p, i) => p.classList.toggle("on", i < on));
+    lastOn = on;
+  }
+  $("crowd-note").textContent =
+    `${on.toLocaleString()} of ${state.n.toLocaleString()} speaking up. Each dot is one person, sorted from bravest to most cautious.`;
+}
+
+// ---------- animation ----------
+let anim = null;
+function cobwebD(path, kind, p) {
+  // p: progress in steps (fractional)
+  let d = `M${sx(path[0])},${sy(kind === "drop" ? 0 : path[0])}`;
+  const steps = path.length - 1;
+  for (let j = 0; j < steps && j < p; j++) {
+    const a = path[j], b = path[j + 1];
+    const frac = Math.min(1, p - j);
+    const v = Math.min(1, frac * 2);
+    const yFrom = j === 0 && kind === "drop" ? 0 : a;
+    d += `V${sy(yFrom + (b - yFrom) * v).toFixed(1)}`;
+    if (frac > 0.5) d += `H${sx(a + (b - a) * ease((frac - 0.5) * 2)).toFixed(1)}`;
+  }
+  return d;
+}
+const ease = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+
+function animateFrom(x0, kind, note) {
+  if (anim) cancelAnimationFrame(anim.raf);
+  const { path, rest } = run(model.share, x0);
+  const steps = path.length - 1;
+  const per = kind === "drop" ? clamp(3600 / steps, 60, 520) : clamp(1800 / steps, 35, 280);
+  anim = { path, rest, steps, per, kind, note, from: x0, t0: performance.now(), raf: 0 };
+  if (steps === 0 || reduceMotion) return finish();
+  const tick = (now) => {
+    // rAF can hand back a timestamp slightly before t0; clamp to the start.
+    const p = clamp((now - anim.t0) / anim.per, 0, steps);
+    const i = Math.min(Math.floor(p), steps - 1);
+    const frac = p - i;
+    const a = path[i], b = path[i + 1];
+    state.E = frac > 0.5 ? a + (b - a) * ease((frac - 0.5) * 2) : a;
+    cobweb.setAttribute("d", cobwebD(path, kind, p));
+    drawBall();
+    $("big").textContent = pct(model.share(state.E));
+    $("caption").textContent =
+      `Round ${i + 1}: people expect ${pct(a)}, and ${pct(b)} actually speak up.`;
+    if (p >= steps) return finish();
+    anim.raf = requestAnimationFrame(tick);
+  };
+  anim.raf = requestAnimationFrame(tick);
+}
+
+function finish() {
+  const { path, rest, steps, kind, from, note } = anim;
+  state.E = rest;
+  cobweb.setAttribute("d", cobwebD(path, kind, steps));
+  drawBall();
+  $("big").textContent = pct(rest);
+  const rounds = `${steps} round${steps === 1 ? "" : "s"}`;
+  let text;
+  if (kind === "drop") {
+    text = steps === 0
+      ? `An expectation of ${pct(from)} is already self-fulfilling.`
+      : `Starting from an expectation of ${pct(from)}, opinion settles at ${pct(rest)} after ${rounds}.`;
+  } else if (Math.round(from) === Math.round(rest)) {
+    text = `Opinion holds at ${pct(rest)}.`;
+  } else {
+    text = `Opinion moved from ${pct(from)} to ${pct(rest)}.`;
+  }
+  $("caption").textContent = note ? `${note} ${text}` : text;
+  anim = null;
+}
+
+// ---------- updates ----------
+function refresh({ crowdChanged = false } = {}) {
+  rebuild();
+  if (crowdChanged) { buildCrowd(); lastOn = -1; }
+  labelCrowd();
+  drawCurve();
+  drawBall();
+  syncControls();
+  saveHash();
+}
+
+function changeCrowd(note) {
+  refresh();
+  animateFrom(state.E, "change", note);
+}
+
+function drop(x) {
+  state.start = Math.round(x);
+  state.E = state.start;
+  saveHash();
+  animateFrom(state.start, "drop");
+}
+
+function sparkNote(s) {
+  if (!s) return "The spark is gone.";
+  return s > 0
+    ? `A spark lowered every threshold by ${s} point${s === 1 ? "" : "s"}.`
+    : `A chill raised every threshold by ${-s} point${s === -1 ? "" : "s"}.`;
+}
+
+let sparkTimer = 0;
+function applyPreset(key) {
+  clearTimeout(sparkTimer);
+  const p = PRESETS[key];
+  state.preset = key;
+  state.ys = [...p.ys];
+  if (key === "spark") {
+    // Show the crowd resting in the low valley, then light the spark.
+    state.spark = 0;
+    refresh();
+    state.E = run(model.share, p.start).rest;
+    state.start = p.start;
+    cobweb.setAttribute("d", "");
+    drawBall();
+    $("big").textContent = pct(state.E);
+    $("caption").textContent = `The crowd rests in the low valley at ${pct(state.E)}.`;
+    sparkTimer = setTimeout(() => {
+      state.spark = state.n === 10 ? 8 : p.spark;
+      changeCrowd(sparkNote(state.spark));
+    }, reduceMotion ? 0 : 1100);
+    return;
+  }
+  state.spark = p.spark;
+  refresh();
+  drop(p.start);
+}
+
+// ---------- controls ----------
+const presetWrap = $("presets");
+for (const [key, p] of Object.entries(PRESETS)) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.textContent = p.label;
+  b.dataset.key = key;
+  b.addEventListener("click", () => applyPreset(key));
+  presetWrap.appendChild(b);
+}
+const sizeWrap = $("sizes");
+for (const n of CROWD_SIZES) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.textContent = `${n.toLocaleString()} people`;
+  b.dataset.n = n;
+  b.addEventListener("click", () => {
+    if (state.n === n) return;
+    state.n = n;
+    refresh({ crowdChanged: true });
+    animateFrom(state.E, "change");
+  });
+  sizeWrap.appendChild(b);
+}
+const sparkInput = $("spark");
+sparkInput.addEventListener("input", () => {
+  clearTimeout(sparkTimer);
+  state.spark = Number(sparkInput.value);
+  if (state.preset === "spark") state.preset = "twoValleys";
+  changeCrowd(sparkNote(state.spark));
+});
+
+function syncControls() {
+  for (const b of presetWrap.children) b.setAttribute("aria-pressed", b.dataset.key === state.preset);
+  for (const b of sizeWrap.children) b.setAttribute("aria-pressed", Number(b.dataset.n) === state.n);
+  sparkInput.value = state.spark;
+  $("spark-out").textContent = state.spark > 0 ? `Lower by ${state.spark}`
+    : state.spark < 0 ? `Raise by ${-state.spark}` : "None";
+}
+
+$("replay").addEventListener("click", () => drop(state.start));
+$("copy").addEventListener("click", async () => {
+  const btn = $("copy");
+  try {
+    await navigator.clipboard.writeText(location.href);
+    btn.textContent = "Copied";
+  } catch {
+    btn.textContent = "Copy failed";
+  }
+  setTimeout(() => (btn.textContent = "Copy link"), 1600);
+});
+
+// drop the ball by clicking the chart or the ground
+chart.addEventListener("click", (e) => {
+  if (e.target.closest(".handle") || justDragged) return;
+  const p = toSvg(chart, e);
+  if (p.x < L - 8 || p.x > L + P + 8 || p.y > T + P + 8) return;
+  drop(fromSx(p.x));
+});
+bowl.addEventListener("click", (e) => drop(fromSx(toSvg(bowl, e).x)));
+
+// hover guide (mouse only)
+chart.addEventListener("pointermove", (e) => {
+  if (e.pointerType !== "mouse" || dragging !== null) return;
+  const p = toSvg(chart, e);
+  const inside = p.x >= L && p.x <= L + P && p.y >= T && p.y <= T + P && !e.target.closest(".handle");
+  guide.setAttribute("visibility", inside ? "visible" : "hidden");
+  guideLabel.setAttribute("visibility", inside ? "visible" : "hidden");
+  if (!inside) return;
+  const x = fromSx(p.x);
+  guide.setAttribute("x1", sx(x));
+  guide.setAttribute("x2", sx(x));
+  guideLabel.setAttribute("x", sx(x) + (x > 70 ? -6 : 6));
+  guideLabel.setAttribute("text-anchor", x > 70 ? "end" : "start");
+  guideLabel.textContent = `Drop at ${pct(x)}`;
+});
+chart.addEventListener("pointerleave", () => {
+  guide.setAttribute("visibility", "hidden");
+  guideLabel.setAttribute("visibility", "hidden");
+});
+
+// handle dragging
+let dragging = null;
+let justDragged = false;
+function setHandle(k, y) {
+  const lo = k > 0 ? state.ys[k - 1] : 0;
+  const hi = k < state.ys.length - 1 ? state.ys[k + 1] : 100;
+  const v = clamp(Math.round(y * 2) / 2, lo, hi);
+  if (v === state.ys[k]) return;
+  state.ys[k] = v;
+  state.preset = "custom";
+  changeCrowd();
+}
+handles.addEventListener("pointerdown", (e) => {
+  const g = e.target.closest(".handle");
+  if (!g) return;
+  e.preventDefault();
+  dragging = Number(g.dataset.k);
+  chart.setPointerCapture(e.pointerId);
+  g.classList.add("active");
+  guide.setAttribute("visibility", "hidden");
+  guideLabel.setAttribute("visibility", "hidden");
+});
+chart.addEventListener("pointermove", (e) => {
+  if (dragging === null) return;
+  const p = toSvg(chart, e);
+  setHandle(dragging, ((T + P - p.y) / P) * 100);
+});
+const endDrag = () => {
+  if (dragging === null) return;
+  dragging = null;
+  justDragged = true;
+  setTimeout(() => (justDragged = false), 0);
+  drawCurve();
+};
+chart.addEventListener("pointerup", endDrag);
+chart.addEventListener("pointercancel", endDrag);
+handles.addEventListener("keydown", (e) => {
+  const g = e.target.closest(".handle");
+  if (!g) return;
+  const k = Number(g.dataset.k);
+  const step = e.shiftKey ? 5 : 1;
+  let dy = 0;
+  if (e.key === "ArrowUp" || e.key === "ArrowRight") dy = step;
+  else if (e.key === "ArrowDown" || e.key === "ArrowLeft") dy = -step;
+  else return;
+  e.preventDefault();
+  setHandle(k, state.ys[k] + dy);
+  handles.children[k]?.focus();
+});
+
+// ---------- shareable link ----------
+let hashTimer = 0;
+function saveHash() {
+  clearTimeout(hashTimer);
+  hashTimer = setTimeout(() => {
+    const p = new URLSearchParams();
+    if (state.preset === "custom") p.set("c", state.ys.join(","));
+    else p.set("p", state.preset);
+    p.set("n", state.n);
+    if (state.spark) p.set("s", state.spark);
+    p.set("b", Math.round(state.start));
+    history.replaceState(null, "", `${location.pathname}${location.search}#${p}`);
+  }, 250);
+}
+function loadHash() {
+  const p = new URLSearchParams(location.hash.slice(1));
+  const n = Number(p.get("n"));
+  if (CROWD_SIZES.includes(n)) state.n = n;
+  if (p.has("c")) {
+    const ys = p.get("c").split(",").map(Number);
+    if (ys.length === HANDLE_XS.length && ys.every((v, i) => v >= 0 && v <= 100 && (i === 0 || v >= ys[i - 1]))) {
+      state.preset = "custom";
+      state.ys = ys;
+    }
+  } else if (PRESETS[p.get("p")]) {
+    state.preset = p.get("p");
+    state.ys = [...PRESETS[state.preset].ys];
+    state.spark = PRESETS[state.preset].spark;
+    state.start = PRESETS[state.preset].start;
+  }
+  if (p.has("s")) state.spark = clamp(Math.round(Number(p.get("s")) || 0), -10, 15);
+  if (p.has("b")) state.start = clamp(Number(p.get("b")) || 0, 0, 100);
+  state.E = state.start;
+}
+
+// ---------- start ----------
+loadHash();
+rebuild();
+buildCrowd();
+refresh();
+if (state.preset === "spark" && !location.hash.includes("s=")) {
+  applyPreset("spark");
+} else {
+  setTimeout(() => drop(state.start), reduceMotion ? 0 : 500);
+}
+</script>
+</body>
+</html>
