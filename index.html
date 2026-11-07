@@ -216,7 +216,7 @@
       <div class="fig-head" style="padding-top:8px">
         <span class="panel-label">B. Where opinion rolls</span>
       </div>
-      <svg id="bowl" viewBox="0 0 520 120" role="img" aria-label="A ball rolling in a landscape. It settles in the low points."></svg>
+      <svg id="bowl" viewBox="0 0 520 156" role="img" aria-label="A ball rolling in a landscape. It settles in the low points."></svg>
       <p class="hint">Click the chart or the ground to drop the ball. Drag the white dots to reshape the crowd.</p>
     </div>
 
@@ -275,11 +275,11 @@
     </div>
     <div>
       <h3>The bowl</h3>
-      <p>Kuran's panel B draws the same thing as ground for a ball to roll on. Valleys are resting points. Erase a valley and the ball rolls all the way to the next one.</p>
+      <p>Kuran's panel B draws the same thing as ground for a ball to roll on. Valleys are resting points. Erase a valley and the ball rolls all the way to the next one. Depths are softened so shallow valleys stay visible.</p>
     </div>
     <div>
       <h3>Why small things matter</h3>
-      <p>Try "Two valleys", then nudge the spark up a few points. Nobody's private views change much, yet opinion leaps from about 13% to about 90%. Since people hide their views, nobody can see in advance how close the crowd is to the edge.</p>
+      <p>Try "Two valleys", then nudge the spark up a few points. Nobody's private views change much, yet opinion leaps from under 10% to nearly everyone. Since people hide their views, nobody can see in advance how close the crowd is to the edge.</p>
     </div>
     <div>
       <h3>Crowd size</h3>
@@ -387,7 +387,7 @@ const handles = el("g", {}, chart);
 const markers = el("g", { "pointer-events": "none" }, chart);
 
 // bowl
-const BL = 104, BT = 24;
+const BL = 140, BT = 20;
 const defs = el("defs", {}, bowl);
 const hatch = el("pattern", { id: "hatch", width: 14, height: 14, patternUnits: "userSpaceOnUse",
   patternTransform: "rotate(35)" }, defs);
@@ -430,9 +430,20 @@ function drawCurve() {
   curvePath.setAttribute("d", stepD());
   basePath.setAttribute("d", state.spark ? smoothD(model.f) : "");
   // Label the curve near its right end, above or below the line.
-  const ly = model.fs(96);
-  curveLabel.setAttribute("x", sx(98));
-  curveLabel.setAttribute("y", ly > 92 ? sy(ly) + 22 : sy(ly) - 10);
+  // If the curve climbs steeply, label it just left of the climb; otherwise
+  // label it near its right end, above the line.
+  let climbX = null;
+  for (let x = 0; x <= 100; x += 0.5) if (model.fs(x) >= 72) { climbX = x; break; }
+  if (climbX !== null && climbX > 30 && climbX < 85) {
+    curveLabel.setAttribute("text-anchor", "end");
+    curveLabel.setAttribute("x", sx(climbX) - 12);
+    curveLabel.setAttribute("y", sy(72) + 4);
+  } else {
+    const ly = model.fs(96);
+    curveLabel.setAttribute("text-anchor", "end");
+    curveLabel.setAttribute("x", sx(98));
+    curveLabel.setAttribute("y", ly > 92 ? sy(ly) + 22 : sy(ly) - 10);
+  }
 
   markers.replaceChildren();
   // In a 10-person crowd the steps, not the smooth curve, decide where
@@ -462,7 +473,7 @@ function drawCurve() {
   let d = "";
   for (let i = 0; i < xs.length; i += 2) d += `${i ? "L" : "M"}${sx(xs[i]).toFixed(1)},${groundY(xs[i]).toFixed(1)}`;
   edgePath.setAttribute("d", d);
-  groundPath.setAttribute("d", `${d}L${sx(100)},118L${sx(0)},118Z`);
+  groundPath.setAttribute("d", `${d}L${sx(100)},154L${sx(0)},154Z`);
 }
 
 function drawBall() {

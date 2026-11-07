@@ -18,14 +18,14 @@ export const PRESETS = {
   },
   twoValleys: {
     label: "Two valleys",
-    ys: [6, 11, 18.5, 27, 37.5, 52, 68, 80, 86.5, 89.5, 92],
+    ys: [4, 9.5, 18.5, 28.5, 39, 74, 91, 95.5, 97.5, 98.5, 99],
     spark: 0,
     start: 4,
   },
   // Same crowd as twoValleys, then a small spark lowers every threshold.
   spark: {
     label: "A small spark",
-    ys: [6, 11, 18.5, 27, 37.5, 52, 68, 80, 86.5, 89.5, 92],
+    ys: [4, 9.5, 18.5, 28.5, 39, 74, 91, 95.5, 97.5, 98.5, 99],
     spark: 4,
     start: 4,
   },
@@ -181,15 +181,20 @@ function root(g, a, b) {
 
 // Height of the "bowl" in Kuran's panel B. Opinion rolls downhill: where more
 // people act than expected (f(x) > x) the ground slopes down to the right.
-export function landscape(f, step = 0.5) {
-  const xs = [];
-  const vs = [];
+// Slopes are square-rooted (softness 0.5) so a shallow valley next to a deep
+// one stays visible. Valleys and hilltops stay exactly where they are; only
+// their depths are softened. Pass softness 1 for the true heights.
+export function landscape(f, step = 0.5, softness = 0.5) {
+  const slope = (x) => {
+    const g = x - f(x);
+    return Math.sign(g) * Math.abs(g) ** softness;
+  };
+  const xs = [0];
+  const vs = [0];
   let v = 0;
-  let prev = 0 - f(0);
-  xs.push(0);
-  vs.push(0);
+  let prev = slope(0);
   for (let x = step; x <= 100 + 1e-9; x += step) {
-    const cur = x - f(x);
+    const cur = slope(x);
     v += ((prev + cur) / 2) * step;
     xs.push(x);
     vs.push(v);
