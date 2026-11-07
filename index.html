@@ -10,66 +10,60 @@
 <meta property="og:description" content="An interactive version of Timur Kuran's preference falsification figure.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+  /* Field notes: a lab notebook. Pale green graph paper, forest green ink.
+     Layout: chart and bowl on the left, controls on the right, notes below. */
   :root {
-    --paper: #f7f4ec;
-    --card: #fffdf8;
-    --ink: #1f1d1a;
-    --ink-2: #5e5850;
-    --muted: #a39b8e;
-    --rule: #e2dbcc;
-    --grid: #ece6da;
-    --accent: #c4472d;
-    --accent-soft: #f4ddd3;
-    --ground: #e8e0cf;
-    --ground-ink: #b2a88f;
-    --dot-off: #ddd5c6;
+    --paper: #edf2ec;
+    --card: #fbfdf9;
+    --ink: #1b2a22;
+    --ink-2: #4d5f54;
+    --muted: #93a598;
+    --rule: #d3ddd2;
+    --grid: #e2eae0;
+    --accent: #0b7a52;
+    --accent-soft: #d2eee0;
+    --ground: #dde7da;
+    --ground-ink: #9fb3a2;
+    --dot-off: #d5dfd3;
+    --font-display: "Bricolage Grotesque", system-ui, sans-serif;
+    --font-body: "Instrument Sans", system-ui, sans-serif;
+    --font-num: "JetBrains Mono", ui-monospace, monospace;
+    --radius: 10px;
+    --pill: 999px;
     color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --paper: #171614;
-      --card: #201f1c;
-      --ink: #ece7dc;
-      --ink-2: #b4ac9d;
-      --muted: #6f685d;
-      --rule: #35322c;
-      --grid: #2a2824;
-      --accent: #ef7d5f;
-      --accent-soft: #4a2b22;
-      --ground: #2c2a25;
-      --ground-ink: #5d574c;
-      --dot-off: #3b3832;
-      color-scheme: dark;
+      --paper: #0f1612; --card: #16201a; --ink: #e3ece5; --ink-2: #a5b6aa; --muted: #5f7265;
+      --rule: #273329; --grid: #1c271f; --accent: #4fd19a; --accent-soft: #173a29;
+      --ground: #1f2b23; --ground-ink: #3f5345; --dot-off: #2a362d; color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
-    --paper: #171614;
-    --card: #201f1c;
-    --ink: #ece7dc;
-    --ink-2: #b4ac9d;
-    --muted: #6f685d;
-    --rule: #35322c;
-    --grid: #2a2824;
-    --accent: #ef7d5f;
-    --accent-soft: #4a2b22;
-    --ground: #2c2a25;
-    --ground-ink: #5d574c;
-    --dot-off: #3b3832;
-    color-scheme: dark;
+    --paper: #0f1612; --card: #16201a; --ink: #e3ece5; --ink-2: #a5b6aa; --muted: #5f7265;
+    --rule: #273329; --grid: #1c271f; --accent: #4fd19a; --accent-soft: #173a29;
+    --ground: #1f2b23; --ground-ink: #3f5345; --dot-off: #2a362d; color-scheme: dark;
+  }
+  body {
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 24px 24px;
   }
 
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    background: var(--paper);
+    background-color: var(--paper);
     color: var(--ink);
-    font: 15px/1.55 Inter, system-ui, sans-serif;
+    font: 15px/1.55 var(--font-body);
     -webkit-font-smoothing: antialiased;
   }
   .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 16px 56px; }
-  .serif { font-family: "Source Serif 4", Georgia, serif; }
+  .serif { font-family: var(--font-display); }
+  .readout .big, .tick { font-family: var(--font-num); }
 
   .intro { max-width: 680px; margin-bottom: 28px; }
   .kicker {
@@ -82,10 +76,10 @@
   }
   h1 {
     margin: 0 0 12px;
-    font: 600 clamp(30px, 4.4vw, 44px)/1.1 "Source Serif 4", Georgia, serif;
+    font: 600 clamp(30px, 4.4vw, 44px)/1.1 var(--font-display);
     letter-spacing: -.01em;
   }
-  .lede { margin: 0; font: 400 18px/1.55 "Source Serif 4", Georgia, serif; color: var(--ink-2); }
+  .lede { margin: 0; font: 400 18px/1.55 var(--font-display); color: var(--ink-2); }
 
   .stage {
     display: grid;
@@ -98,7 +92,7 @@
   .figure, .panel {
     background: var(--card);
     border: 1px solid var(--rule);
-    border-radius: 14px;
+    border-radius: var(--radius);
   }
   .figure { padding: 16px 16px 12px; }
   .figure svg { display: block; width: 100%; height: auto; overflow: visible; }
@@ -122,7 +116,7 @@
   .diag { stroke: var(--ink-2); stroke-width: 1.2; }
   .diag-label { font-size: 12px; fill: var(--ink-2); font-style: italic; }
   .curve { fill: none; stroke: var(--ink); stroke-width: 2.6; stroke-linejoin: round; }
-  .curve-label { font: italic 600 14px "Source Serif 4", Georgia, serif; fill: var(--ink); }
+  .curve-label { font: italic 600 14px var(--font-display); fill: var(--ink); }
   .base-curve { fill: none; stroke: var(--muted); stroke-width: 1.6; stroke-dasharray: 5 5; }
   .cobweb { fill: none; stroke: var(--accent); stroke-width: 1.8; stroke-dasharray: 2 4; stroke-linecap: round; }
   .rest { fill: var(--ink); stroke: var(--card); stroke-width: 2; }
@@ -144,7 +138,7 @@
   /* panel */
   .panel { padding: 20px; display: grid; gap: 22px; }
   .readout .big {
-    font: 600 56px/1 "Source Serif 4", Georgia, serif;
+    font: 600 56px/1 var(--font-display);
     font-variant-numeric: tabular-nums;
     letter-spacing: -.02em;
     margin: 6px 0 8px;
@@ -155,11 +149,11 @@
   legend { padding: 0; margin-bottom: 8px; }
   .seg { display: flex; flex-wrap: wrap; gap: 6px; }
   .seg button, .btn {
-    font: 500 13px/1 Inter, system-ui, sans-serif;
+    font: 500 13px/1 var(--font-body);
     color: var(--ink);
     background: transparent;
     border: 1px solid var(--rule);
-    border-radius: 999px;
+    border-radius: var(--pill);
     padding: 9px 13px;
     cursor: pointer;
   }
@@ -185,7 +179,7 @@
     gap: 20px 32px;
     max-width: 980px;
   }
-  .explain h2 { grid-column: 1 / -1; margin: 0; font: 600 24px/1.2 "Source Serif 4", Georgia, serif; }
+  .explain h2 { grid-column: 1 / -1; margin: 0; font: 600 24px/1.2 var(--font-display); }
   .explain h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
   .explain p { margin: 0; color: var(--ink-2); }
   footer {
@@ -198,7 +192,7 @@
   footer a, .explain a { color: inherit; text-underline-offset: 2px; }
 
   /* Embedded in a blog post: just the widget. */
-  body.embed { background: transparent; }
+  body.embed { background: transparent; background-image: none; }
   body.embed .wrap { padding: 8px; }
   body.embed .intro, body.embed .explain, body.embed footer { display: none; }
 
@@ -294,7 +288,7 @@
   </section>
 
   <footer>
-    Built by Chris Henry for <a href="https://www.atvbt.com/widget-help-request/">Atoms vs Bits</a>.
+    Built by Chris Henry.
     Model and Figure 4.3 from Timur Kuran, <em>Private Truths, Public Lies</em> (Harvard University Press, 1995), building on Mark Granovetter's threshold model (1978).
     <a href="__REPO_URL__">Source on GitHub</a>, MIT license.
   </footer>
