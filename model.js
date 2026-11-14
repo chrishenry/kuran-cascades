@@ -9,27 +9,23 @@
 // The curve is shaped by handles at these expected-opinion levels.
 export const HANDLE_XS = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
 
+// Listed in button order; the first one is the default view.
 export const PRESETS = {
-  fig43: {
-    label: "Kuran's Figure 4.3",
-    ys: [30, 32.5, 35, 37.5, 40, 43.5, 48, 53, 59, 66, 74],
-    spark: 0,
-    start: 20,
-  },
   twoValleys: {
     label: "Two valleys",
     ys: [4, 9.5, 18.5, 28.5, 39, 74, 91, 95.5, 97.5, 98.5, 99],
     spark: 0,
     start: 4,
   },
-  // Same crowd as twoValleys, then a small spark lowers every threshold.
-  spark: {
-    label: "A small spark",
-    ys: [4, 9.5, 18.5, 28.5, 39, 74, 91, 95.5, 97.5, 98.5, 99],
-    spark: 4,
-    start: 4,
+  fig43: {
+    label: "Kuran's Figure 4.3",
+    ys: [30, 32.5, 35, 37.5, 40, 43.5, 48, 53, 59, 66, 74],
+    spark: 0,
+    start: 20,
   },
 };
+
+export const DEFAULT_PRESET = "twoValleys";
 
 export const CROWD_SIZES = [10, 100, 1000];
 

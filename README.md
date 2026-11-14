@@ -14,8 +14,9 @@ People often hide what they think until enough others speak up first. Each perso
 
 - Click the chart or the ground to drop the ball at a starting expectation.
 - Drag the white dots to reshape the crowd.
+- Pick a crowd: "Two valleys" (the default) or Kuran's Figure 4.3.
 - Pick a crowd size (10, 100, or 1,000 people).
-- Move the spark slider to lower or raise every threshold.
+- Move the spark slider to lower or raise every threshold. On "Two valleys", raise it until the crowd tips, then set it back to zero: the crowd stays tipped.
 - Copy link saves the current setup in the URL.
 
 ## Embedding

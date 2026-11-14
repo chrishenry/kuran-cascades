@@ -86,3 +86,18 @@ test("10-person crowd has 10 thresholds and share moves in 10 point steps", () =
   const share = makeShare(crowd);
   for (let x = 0; x <= 100; x += 7) assert.equal(share(x) % 10, 0);
 });
+
+test("once tipped, the crowd stays tipped when the spark is removed", () => {
+  const f = makeCurve(PRESETS.twoValleys.ys);
+  const go = (spark, x) => run(makeShare(makeCrowd(f, 100, spark)), x).rest;
+  const low = go(0, PRESETS.twoValleys.start);
+  const tipped = go(4, low);
+  assert.ok(tipped > 90, `tipped to ${tipped}`);
+  assert.ok(go(0, tipped) > 90, "spark removed");
+});
+
+test("Two valleys is the default and the only other preset is Figure 4.3", async () => {
+  const { DEFAULT_PRESET } = await import("../model.js");
+  assert.equal(DEFAULT_PRESET, "twoValleys");
+  assert.deepEqual(Object.keys(PRESETS), ["twoValleys", "fig43"]);
+});

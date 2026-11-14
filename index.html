@@ -243,7 +243,7 @@
           <output id="spark-out" for="spark">None</output>
         </div>
         <input id="spark" type="range" min="-10" max="15" step="1" value="0">
-        <p class="spark-help">Lowers every person's threshold by the same amount, like news that makes speaking up feel a bit safer.</p>
+        <p class="spark-help">Lowers every person's threshold by the same amount, like news that makes speaking up feel a bit safer. Raise it until the crowd tips, then set it back to zero.</p>
       </div>
 
       <div>
@@ -279,7 +279,11 @@
     </div>
     <div>
       <h3>Why small things matter</h3>
-      <p>Try "Two valleys", then nudge the spark up a few points. Nobody's private views change much, yet opinion leaps from under 10% to nearly everyone. Since people hide their views, nobody can see in advance how close the crowd is to the edge.</p>
+      <p>On "Two valleys", nudge the spark up one point at a time. Nobody's private views change much, yet at 4 points opinion leaps from under 10% to nearly everyone. Since people hide their views, nobody can see in advance how close the crowd is to the edge.</p>
+    </div>
+    <div>
+      <h3>Why it sticks</h3>
+      <p>Once the crowd tips, set the spark back to zero. Opinion stays high, because the ball is now in the other valley and nothing pushes it back over the hill. The trigger can fade and the change remains.</p>
     </div>
     <div>
       <h3>Crowd size</h3>
@@ -296,9 +300,9 @@
 
 <script type="module">
 import {
-  HANDLE_XS, PRESETS, CROWD_SIZES,
+  HANDLE_XS, PRESETS, DEFAULT_PRESET, CROWD_SIZES,
   makeCurve, shiftCurve, makeCrowd, makeShare, run, crossings, landscape,
-} from "./model.js?v=2"; // bump when model.js changes, so caches never mix versions
+} from "./model.js?v=3"; // bump when model.js changes, so caches never mix versions
 
 const NS = "http://www.w3.org/2000/svg";
 const $ = (id) => document.getElementById(id);
@@ -310,12 +314,12 @@ if (new URLSearchParams(location.search).has("embed")) document.body.classList.a
 
 // ---------- state ----------
 const state = {
-  preset: "fig43",
-  ys: [...PRESETS.fig43.ys],
+  preset: DEFAULT_PRESET,
+  ys: [...PRESETS[DEFAULT_PRESET].ys],
   n: 100,
-  spark: 0,
-  start: 20,
-  E: 20, // current expected public opinion (where the ball is)
+  spark: PRESETS[DEFAULT_PRESET].spark,
+  start: PRESETS[DEFAULT_PRESET].start,
+  E: PRESETS[DEFAULT_PRESET].start, // current expected public opinion (where the ball is)
 };
 let model = null;
 
@@ -581,7 +585,10 @@ function finish() {
       ? `An expectation of ${pct(from)} is already self-fulfilling.`
       : `Starting from an expectation of ${pct(from)}, opinion settles at ${pct(rest)} after ${rounds}.`;
   } else if (Math.round(from) === Math.round(rest)) {
-    text = `Opinion holds at ${pct(rest)}.`;
+    // Spark taken away from a tipped crowd: point out that it stays tipped.
+    text = state.spark === 0 && rest > 50 && note
+      ? `Opinion stays at ${pct(rest)}. Once tipped, the crowd doesn't tip back.`
+      : `Opinion holds at ${pct(rest)}.`;
   } else {
     text = `Opinion moved from ${pct(from)} to ${pct(rest)}.`;
   }
@@ -619,28 +626,10 @@ function sparkNote(s) {
     : `A chill raised every threshold by ${-s} point${s === -1 ? "" : "s"}.`;
 }
 
-let sparkTimer = 0;
 function applyPreset(key) {
-  clearTimeout(sparkTimer);
   const p = PRESETS[key];
   state.preset = key;
   state.ys = [...p.ys];
-  if (key === "spark") {
-    // Show the crowd resting in the low valley, then light the spark.
-    state.spark = 0;
-    refresh();
-    state.E = run(model.share, p.start).rest;
-    state.start = p.start;
-    cobweb.setAttribute("d", "");
-    drawBall();
-    $("big").textContent = pct(state.E);
-    $("caption").textContent = `The crowd rests in the low valley at ${pct(state.E)}.`;
-    sparkTimer = setTimeout(() => {
-      state.spark = state.n === 10 ? 8 : p.spark;
-      changeCrowd(sparkNote(state.spark));
-    }, reduceMotion ? 0 : 1100);
-    return;
-  }
   state.spark = p.spark;
   refresh();
   drop(p.start);
@@ -672,9 +661,7 @@ for (const n of CROWD_SIZES) {
 }
 const sparkInput = $("spark");
 sparkInput.addEventListener("input", () => {
-  clearTimeout(sparkTimer);
   state.spark = Number(sparkInput.value);
-  if (state.preset === "spark") state.preset = "twoValleys";
   changeCrowd(sparkNote(state.spark));
 });
 
@@ -801,11 +788,20 @@ function loadHash() {
       state.preset = "custom";
       state.ys = ys;
     }
-  } else if (PRESETS[p.get("p")]) {
-    state.preset = p.get("p");
-    state.ys = [...PRESETS[state.preset].ys];
-    state.spark = PRESETS[state.preset].spark;
-    state.start = PRESETS[state.preset].start;
+  } else {
+    // Links made before the "A small spark" preset was removed open Two
+    // valleys with the spark set to 4, which is what that preset showed.
+    let key = p.get("p");
+    if (key === "spark") {
+      key = "twoValleys";
+      if (!p.has("s")) p.set("s", 4);
+    }
+    if (PRESETS[key]) {
+      state.preset = key;
+      state.ys = [...PRESETS[key].ys];
+      state.spark = PRESETS[key].spark;
+      state.start = PRESETS[key].start;
+    }
   }
   if (p.has("s")) state.spark = clamp(Math.round(Number(p.get("s")) || 0), -10, 15);
   if (p.has("b")) state.start = clamp(Number(p.get("b")) || 0, 0, 100);
@@ -817,11 +813,7 @@ loadHash();
 rebuild();
 buildCrowd();
 refresh();
-if (state.preset === "spark" && !location.hash.includes("s=")) {
-  applyPreset("spark");
-} else {
-  setTimeout(() => drop(state.start), reduceMotion ? 0 : 500);
-}
+setTimeout(() => drop(state.start), reduceMotion ? 0 : 500);
 </script>
 </body>
 </html>
